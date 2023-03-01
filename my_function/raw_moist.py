@@ -1,93 +1,76 @@
-# Import the necessary library
+import time
+running = True
+secounds = 0
+end = 10
+while (running):
+    print(secounds)
+    time.sleep(1)
+    secounds +=1
+    if (secounds >= end):
+        running = False
+        print('y')
+print('Done')
+
+
+
+###########################
 from pyModbusTCP.client import ModbusClient
 import time
+import pandas as pd
 
-class MOIST():
-    # host = '192.168.200.100'
-    # port = 502
-    # # [Input,value,insert] detail input[address,data,index]_value[address,data,index]_insert[address,data,index]
-    # modeF = [[400,125,20],[401,125,30],[402,125,40]]
-    # modeV = [[403,125,50],[404,125,60],[405,125,70]]
+# [Input,value,insert] detail input[address,quantity,index]_value[address,quantity,index]_insert[address,quantity,index]
+modeF = [[400,10,0],[401,10,0],[402,10,0]]
+modeV = [[403,10,0],[404,10,0],[405,10,0]]
+
+client = ModbusClient(host='192.168.200.100', port=502)
+client.open()
+sensor_input = []
+
+running = True
+secounds = 0
+end = 10
     
-    def __init__(self) -> None:
-        self.host = '192.168.200.100'
-        self.port = 502
-        # [Input,value,insert] detail input[address,quantity,index]_value[address,quantity,index]_insert[address,quantity,index]
-        self.modeF = [[400,10,0],[401,10,0],[402,10,0]]
-        self.modeV = [[403,10,0],[404,10,0],[405,10,0]]
-        
-        self.client = ModbusClient(host='192.168.200.100', port=502)
-        
-        try:
-            print('Opening client')
-            self.client.open()
-        except:
-            print('offline')
-            self.client.close()
-            
-    def mode_F_input (self):
-        try:
-            self.client.open()
-            while True:
-                F_input = self.client.read_holding_registers(self.modeF[0][0], self.modeF[0][1])
-                index = int(self.modeF[0][2])
-                print(f"Register 0: {F_input[index]}")
-                time.sleep(2)
-        except:
-            print('Shutdown')
-            
-    def mode_F_value (self):
-        try:
-            self.client.open()
-            while True:
-                F_value = self.client.read_holding_registers(self.modeF[1][0], self.modeF[1][1])
-                index = int(self.modeF[1][2])
-                print(f"Register 0: {F_value[index]}")
-                time.sleep(2)
-        except:
-            print('Shutdown')
-            
-    def mode_F_insert (self):
-        try:
-            self.client.open()
-            while True:
-                F_insert = self.client.read_holding_registers(self.modeF[2][0], self.modeF[2][1])
-                index = int(self.modeF[2][3])
-                print(f"Register 0: {F_insert[index]}")
-                time.sleep(2)
-        except:
-            print('Shutdown')
-            
-    def mode_V_input (self):
-        try:
-            self.client.open()
-            while True:
-                V_input = self.client.read_holding_registers(self.modeV[0][0], self.modeV[0][1])
-                index = int(self.modeV[0][3])
-                print(f"Register 0: {V_input[index]}")
-                time.sleep(2)
-        except:
-            print('Shutdown')
-            
-    def mode_V_value (self):
-        try:
-            self.client.open()
-            while True:
-                V_value = self.client.read_holding_registers(self.modeV[1][0], self.modeV[1][1])
-                index = int(self.modeV[1][3])
-                print(f"Register 0: {V_value[index]}")
-                time.sleep(2)
-        except:
-            print('Shutdown')
-            
-    def mode_V_insert (self):
-        try:
-            self.client.open()
-            while True:
-                V_insert = self.client.read_holding_registers(self.modeV[2][0], self.modeV[2][1])
-                index = index(self.modeV[2][3])
-                print(f"Register 0: {V_insert[index]}")
-                time.sleep(2)
-        except:
-            print('Shutdown')
-        
+while (running):
+    sensor_data = client.read_holding_registers(400,10)
+    input = float(sensor_data[0])
+    print(f"Register 0: {input}")
+    sensor_input.append(input)
+    print(secounds)
+    time.sleep(1)
+    secounds +=1
+    if (secounds >= end):
+        running = False
+        print('y')
+sensor_input
+
+#####################################
+import pandas as pd
+import time
+import os
+import datetime
+from matplotlib import pyplot as plt
+import seaborn as sns
+
+def plot_data(df): #plot data
+    plt.figure(figsize=(15,8))
+    ax = sns.lineplot(x="sampling", y="F_input(mA)", data=df)
+
+#raw_data = [110,112,113,114,115,116,117,118,119,120,110,111,112,113,114,115]
+
+def data_to_excel(raw_data):
+    data = []
+    for i in range(len(raw_data)):
+        input = [i+1,raw_data[i]]
+        data.append(input)
+        print (data)
+        time.sleep(1)
+    df = pd.DataFrame(data, columns=['sampling','F_input(mA)'])
+    df[['insert(k)','Value(Moist_reading)','Value(Moist_act)']]=""
+    rootDir = './data_export/'
+    filename = f"Calibrate_{datetime.datetime.now().strftime('%Y%m%d')}"
+    plot_data(df)
+    df.to_excel(rootDir + filename + '.xlsx')
+
+
+raw_data = [110,112,113,114,115,116,117,118,119,120,110,111,112,113,114,115]
+data_to_excel(raw_data)
